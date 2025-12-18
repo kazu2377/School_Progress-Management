@@ -55,11 +55,38 @@ Supabaseで以下のテーブルを作成してください：
 
 ※ ストレージバケット `application-attachments` の作成も必要です。
 
-### 5. 開発サーバーの起動
+## 🐳 Docker 利用方法
+
+このプロジェクトには Dockerfile が含まれており、コンテナ環境での実行やデプロイが可能です。
+
+### 1. 開発用イメージの作成
+以下のコマンドで Docker イメージをビルドします。
 ```bash
-npm run dev
+docker build -t school-mgmt .
 ```
-ブラウザで [http://localhost:3000](http://localhost:3000) を開いて確認できます。
+
+### 2. ローカルでのコンテナ起動
+ビルドしたイメージを使用してコンテナを起動します。
+```bash
+docker run -p 3000:3000 --env-file .env.local school-mgmt
+```
+ブラウザで [http://localhost:3000](http://localhost:3000) にアクセスして確認できます。
+
+### 3. Docker Hub へのプッシュ
+Docker Hub にイメージを保存する手順です（ユーザー名 `jtths474` を使用）。
+
+1. **ログイン**
+   ```bash
+   docker login -u jtths474
+   ```
+2. **イメージにタグを付ける**
+   ```bash
+   docker tag school-mgmt jtths474/school-mgmt
+   ```
+3. **プッシュ**
+   ```bash
+   docker push jtths474/school-mgmt
+   ```
 
 ## 📁 ディレクトリ構造
 - `src/app`: ページコンポーネントとサーバーアクション
