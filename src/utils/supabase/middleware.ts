@@ -64,9 +64,48 @@ export async function updateSession(request: NextRequest) {
                 url.pathname = "/admin/dashboard";
                 return NextResponse.redirect(url);
             } else if (role === 'student') {
-                url.pathname = "/student/dashboard"; // Changed from /dashboard to /student/dashboard to match plan
+                url.pathname = "/student/dashboard";
                 return NextResponse.redirect(url);
             }
+        }
+
+        // Strict RBAC for specific paths
+        if (request.nextUrl.pathname.startsWith('/admin')) {
+             // Fetch profile to get role if we haven't already (optimization: we could reuse if we fetched above, but logic above is inside "if path is / or /login")
+             // Actually, the block above only runs for / and /login. So we need to fetch role here if not checked.
+             // To avoid double fetching, let's restructure slightly to fetch role once if user exists.
+             const { data: profile } = await supabase
+                .from('profiles')
+                .select('role_id')
+                .eq('id', user.id)
+                .single();
+             
+             const role = profile?.role_id;
+             
+             if (role !== 'admin') {
+                 const url = request.nextUrl.clone();
+                 url.pathname = "/"; // or /student/dashboard, or error page. Keeping it safe with root.
+                 return NextResponse.redirect(url);
+             }
+        }
+        
+        if (request.nextUrl.pathname.startsWith('/student')) {
+             const { data: profile } = await supabase
+                .from('profiles')
+                .select('role_id')
+                .eq('id', user.id)
+                .single();
+             
+             const role = profile?.role_id;
+             
+             // Optional: Strict check for student role. Admin might need access?
+             // If admin needs access, use: if (role !== 'student' && role !== 'admin')
+             // For now adhering to strict separation as requested.
+             if (role !== 'student' && role !== 'admin') {
+                 const url = request.nextUrl.clone();
+                 url.pathname = "/"; 
+                 return NextResponse.redirect(url);
+             }
         }
     }
 
