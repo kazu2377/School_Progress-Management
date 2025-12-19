@@ -96,3 +96,31 @@ Docker Hub にイメージを保存する手順です（ユーザー名 `jtths47
 
 ## 📜 ライセンス
 このプロジェクトは私的な進捗管理用として公開されています。
+
+## ☁️ Amazon Lightsail デプロイ手順
+
+Amazon Lightsail のコンテナサービスを使用してデプロイする簡潔な手順です。
+
+### 1. 事前準備
+- Docker Hub にイメージがプッシュされていること（上述の「Docker Hub へのプッシュ」を参照）。
+
+### 2. Lightsail コンテナサービスの作成
+1. AWS コンソールで **Lightsail** に移動します。
+2. **コンテナ** タブから「コンテナサービスを作成」をクリックします。
+3. 容量（Nano, Micro など）を選択します。
+
+### 3. デプロイ設定
+1. 「デプロイメントの作成」をクリックします。
+2. **イメージ**: `jtths474/school-mgmt:latest` (Docker Hub のイメージパス)
+3. **オープンポート**: `3000` (HTTP)
+4. **環境変数**:
+   - `NEXT_PUBLIC_SUPABASE_URL`: (Supabase の URL)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: (Supabase の API キー)
+   - `NODE_ENV`: `production`
+
+![alt text](image-1.png)
+
+### 4. 公開
+1. 「パブリックエンドポイント」に作成したコンテナを指定します。
+2. 保存してデプロイが完了すると、提供される URL からアクセス可能になります。
+
