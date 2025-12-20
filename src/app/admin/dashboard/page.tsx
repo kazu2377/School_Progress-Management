@@ -117,11 +117,10 @@ export default async function AdminDashboard({
     // KPI Calculations (Based on filtered applications)
     const totalApplications = filteredApps.length;
     const passedDocs = filteredApps.filter((a: any) => a.document_result === '通過').length;
-    const totalOffers = filteredApps.filter((a: any) => a.has_job_offer).length;
-    const totalInterviews = filteredApps.filter((a: any) => a.has_interview).length;
+    const totalOffers = filteredApps.filter((a: any) => a.status === '内定').length;
 
     const docRate = totalApplications > 0 ? Math.round((passedDocs / totalApplications) * 100) : 0;
-    const offerRate = totalInterviews > 0 ? Math.round((totalOffers / totalInterviews) * 100) : 0;
+    const offerRate = totalApplications > 0 ? Math.round((totalOffers / totalApplications) * 100) : 0;
 
     return (
         <div className="container mx-auto p-6 max-w-7xl">
@@ -205,11 +204,10 @@ export default async function AdminDashboard({
                                 {students?.map((s: any) => {
                                     const apps = s.applications || [];
                                     const dPass = apps.filter((a: any) => a.document_result === '通過').length;
-                                    const sOff = apps.filter((a: any) => a.has_job_offer).length;
-                                    const sInt = apps.filter((a: any) => a.has_interview).length;
+                                    const sOff = apps.filter((a: any) => a.status === '内定').length;
 
                                     const sDocR = apps.length > 0 ? Math.round((dPass / apps.length) * 100) : 0;
-                                    const sOffR = sInt > 0 ? Math.round((sOff / sInt) * 100) : 0;
+                                    const sOffR = apps.length > 0 ? Math.round((sOff / apps.length) * 100) : 0;
 
                                     return (
                                         <tr key={s.id} className="hover:bg-slate-50 transition-colors">
@@ -260,10 +258,9 @@ export default async function AdminDashboard({
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-sm">
-                                            <span className={`font-bold ${app.document_result === '通過' ? 'text-green-600' : app.document_result === 'お見送り' ? 'text-rose-500' : 'text-muted'}`}>
+                                            <span className={`font-bold ${app.document_result === '通過' ? 'text-green-600' : app.document_result === '不通過' ? 'text-rose-500' : 'text-muted'}`}>
                                                 {app.document_result || "-"}
                                             </span>
-                                            {app.has_job_offer && <span className="ml-2 inline-block px-1.5 py-0.5 bg-yellow-400 text-white text-[10px] rounded animate-pulse">内定</span>}
                                         </td>
                                         <td className="px-6 py-4 text-sm">
                                             {app.application_attachments?.length > 0 ? (
