@@ -60,9 +60,6 @@ export async function updateApplication(id: string, formData: FormData) {
             source,
             status,
             document_result,
-            resume_created,
-            work_history_created,
-            portfolio_submitted,
         })
         .eq("id", id)
         .eq("student_id", user.id); // Security: ensure it belongs to the user
@@ -145,6 +142,19 @@ export async function uploadAttachment(applicationId: string, formData: FormData
         return { error: "データベースへの保存に失敗しました" };
     }
 
+    // 3. Update application status flag
+    const statusUpdate: any = {};
+    if (category === "resume") statusUpdate.resume_created = true;
+    if (category === "cv") statusUpdate.work_history_created = true;
+    if (category === "portfolio") statusUpdate.portfolio_submitted = true;
+
+    if (Object.keys(statusUpdate).length > 0) {
+        await supabase
+            .from("applications")
+            .update(statusUpdate)
+            .eq("id", applicationId);
+    }
+
     revalidatePath("/student/dashboard");
     return { success: true, data: insertedData };
 }
@@ -191,6 +201,27 @@ export async function deleteAttachment(attachmentId: string) {
 
     if (dbError) {
         return { error: "データの削除に失敗しました" };
+    }
+
+    // 3. Update application status flag if no files left for this category
+    const { count } = await supabase
+        .from('application_attachments')
+        .select('*', { count: 'exact', head: true })
+        .eq('application_id', attachment.application_id)
+        .eq('category', attachment.category);
+
+    if (count === 0) {
+        const resetUpdate: any = {};
+        if (attachment.category === "resume") resetUpdate.resume_created = false;
+        if (attachment.category === "cv") resetUpdate.work_history_created = false;
+        if (attachment.category === "portfolio") resetUpdate.portfolio_submitted = false;
+
+        if (Object.keys(resetUpdate).length > 0) {
+            await supabase
+                .from("applications")
+                .update(resetUpdate)
+                .eq("id", attachment.application_id);
+        }
     }
 
     revalidatePath("/student/dashboard");

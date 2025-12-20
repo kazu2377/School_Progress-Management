@@ -192,19 +192,22 @@ export default function EditApplicationModal({ application }: { application: any
                                 </div>
 
                                 <div className="bg-slate-50 p-4 rounded-xl border border-border space-y-3">
-                                    <p className="text-xs font-bold text-muted uppercase tracking-wider mb-1">準備・チェック項目</p>
-                                    <div className="grid grid-cols-2 gap-3">
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input name="resume_created" type="checkbox" defaultChecked={application.resume_created} className="w-4 h-4 rounded text-accent" />
-                                            <span className="text-sm font-medium">履歴書OK</span>
+                                    <p className="text-[10px] font-bold text-muted uppercase tracking-[0.1em] mb-2 flex items-center gap-1.5">
+                                        <span className="w-1 h-3 bg-accent rounded-full"></span>
+                                        書類準備状況 (自動更新)
+                                    </p>
+                                    <div className="grid grid-cols-2 gap-3 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
+                                        <label className="flex items-center gap-2 opacity-80 decoration-slate-300">
+                                            <input type="checkbox" checked={application.resume_created} disabled className="w-4 h-4 rounded text-emerald-500 border-slate-300 bg-white" />
+                                            <span className={`text-xs font-bold ${application.resume_created ? 'text-emerald-600' : 'text-slate-400'}`}>履歴書OK</span>
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input name="work_history_created" type="checkbox" defaultChecked={application.work_history_created} className="w-4 h-4 rounded text-accent" />
-                                            <span className="text-sm font-medium">職歴書OK</span>
+                                        <label className="flex items-center gap-2 opacity-80">
+                                            <input type="checkbox" checked={application.work_history_created} disabled className="w-4 h-4 rounded text-emerald-500 border-slate-300 bg-white" />
+                                            <span className={`text-xs font-bold ${application.work_history_created ? 'text-emerald-600' : 'text-slate-400'}`}>職歴書OK</span>
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input name="portfolio_submitted" type="checkbox" defaultChecked={application.portfolio_submitted} className="w-4 h-4 rounded text-accent" />
-                                            <span className="text-sm font-medium">PF提出OK</span>
+                                        <label className="flex items-center gap-2 opacity-80">
+                                            <input type="checkbox" checked={application.portfolio_submitted} disabled className="w-4 h-4 rounded text-emerald-500 border-slate-300 bg-white" />
+                                            <span className={`text-xs font-bold ${application.portfolio_submitted ? 'text-emerald-600' : 'text-slate-400'}`}>PF提出OK</span>
                                         </label>
                                     </div>
                                 </div>
