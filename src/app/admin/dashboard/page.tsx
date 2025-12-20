@@ -20,6 +20,17 @@ export default async function AdminDashboard({
         return redirect("/login");
     }
 
+    // Verify admin role (Defense in Depth)
+    const { data: profile } = await supabase
+        .from("profiles")
+        .select("role_id")
+        .eq("id", user.id)
+        .single();
+
+    if (profile?.role_id !== "admin") {
+        return redirect("/");
+    }
+
     // Fetch courses for the filter and modals
     const { data: courses } = await supabase.from("courses").select("*");
 

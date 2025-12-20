@@ -51,9 +51,6 @@ export async function updateApplication(id: string, formData: FormData) {
     const resume_created = formData.get("resume_created") === "on";
     const work_history_created = formData.get("work_history_created") === "on";
     const portfolio_submitted = formData.get("portfolio_submitted") === "on";
-    const has_interview = formData.get("has_interview") === "on";
-    const has_job_offer = formData.get("has_job_offer") === "on";
-
     const { error } = await supabase
         .from("applications")
         .update({
@@ -66,8 +63,6 @@ export async function updateApplication(id: string, formData: FormData) {
             resume_created,
             work_history_created,
             portfolio_submitted,
-            has_interview,
-            has_job_offer,
         })
         .eq("id", id)
         .eq("student_id", user.id); // Security: ensure it belongs to the user

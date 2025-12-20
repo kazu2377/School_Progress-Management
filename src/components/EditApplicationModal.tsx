@@ -206,14 +206,6 @@ export default function EditApplicationModal({ application }: { application: any
                                             <input name="portfolio_submitted" type="checkbox" defaultChecked={application.portfolio_submitted} className="w-4 h-4 rounded text-accent" />
                                             <span className="text-sm font-medium">PF提出OK</span>
                                         </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input name="has_interview" type="checkbox" defaultChecked={application.has_interview} className="w-4 h-4 rounded text-accent" />
-                                            <span className="text-sm font-medium">面接あり</span>
-                                        </label>
-                                        <label className="flex items-center gap-2 cursor-pointer">
-                                            <input name="has_job_offer" type="checkbox" defaultChecked={application.has_job_offer} className="w-4 h-4 rounded text-accent" />
-                                            <span className="text-sm font-medium">内定あり</span>
-                                        </label>
                                     </div>
                                 </div>
 
@@ -313,8 +305,9 @@ export default function EditApplicationModal({ application }: { application: any
                             </div>
                         )}
                     </div>
-                </div>
-            )}
+                </div >
+            )
+            }
         </>
     );
 }
