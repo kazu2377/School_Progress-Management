@@ -73,19 +73,21 @@ docker run -p 3000:3000 --env-file .env.local school-mgmt
 ブラウザで [http://localhost:3000](http://localhost:3000) にアクセスして確認できます。
 
 ### 3. Docker Hub へのプッシュ
-Docker Hub にイメージを保存する手順です（ユーザー名 `jtths474` を使用）。
+Docker Hub にイメージを保存する手順です（ユーザー名 `jtths474` を使用、google認証ならいらない）。
 
-1. **ログイン**
-   ```bash
-   docker login -u jtths474
-   ```
-2. **イメージにタグを付ける**
-   ```bash
-   docker tag school-mgmt jtths474/school-mgmt
-   ```
+1. **ドッカーbuild**
+```bash
+docker build -t jtths474/school-mgmt:latest .
+```
+
+2. **ログイン**
+```bash
+docker login -u jtths474
+```
+
 3. **プッシュ**
-   ```bash
-   docker push jtths474/school-mgmt
+```bash
+   docker push jtths474/school-mgmt:latest
    ```
 
 ## 📁 ディレクトリ構造
