@@ -2,9 +2,15 @@
 
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
+import { validateRequestOrigin } from "@/utils/security";
 
 export async function addApplication(formData: FormData) {
     const supabase = await createClient();
+
+    if (!await validateRequestOrigin()) {
+        return { error: "Invalid Request Origin" };
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -36,6 +42,11 @@ export async function addApplication(formData: FormData) {
 
 export async function updateApplication(id: string, formData: FormData) {
     const supabase = await createClient();
+
+    if (!await validateRequestOrigin()) {
+        return { error: "Invalid Request Origin" };
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -75,6 +86,10 @@ export async function updateApplication(id: string, formData: FormData) {
 
 export async function uploadAttachment(applicationId: string, formData: FormData) {
     const supabase = await createClient();
+
+    if (!await validateRequestOrigin()) {
+        return { error: "Invalid Request Origin" };
+    }
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -162,6 +177,8 @@ export async function uploadAttachment(applicationId: string, formData: FormData
 export async function deleteAttachment(attachmentId: string) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
+
+    if (!await validateRequestOrigin()) throw new Error("Invalid Request Origin"); // consistent with line 166 which throws
 
     if (!user) throw new Error("Unauthorized");
 

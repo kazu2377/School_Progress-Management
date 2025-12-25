@@ -3,9 +3,14 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/utils/logger";
+import { validateRequestOrigin } from "@/utils/security";
 
 export async function updateStudentProfile(studentId: string, formData: FormData) {
     const supabase = await createClient();
+    if (!await validateRequestOrigin()) {
+        return { error: "Invalid Request Origin" };
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
@@ -59,6 +64,11 @@ export async function updateStudentProfile(studentId: string, formData: FormData
 
 export async function deleteStudent(studentId: string) {
     const supabase = await createClient();
+
+    if (!await validateRequestOrigin()) {
+        return { error: "Invalid Request Origin" };
+    }
+
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
