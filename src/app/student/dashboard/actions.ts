@@ -3,6 +3,8 @@
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { validateRequestOrigin } from "@/utils/security";
+import { CreateApplicationSchema, UpdateApplicationSchema, UploadAttachmentSchema } from "@/utils/schemas";
+import { z } from "zod";
 
 export async function addApplication(formData: FormData) {
     const supabase = await createClient();
@@ -17,10 +19,18 @@ export async function addApplication(formData: FormData) {
         throw new Error("Unauthorized");
     }
 
-    const company = formData.get("company") as string;
-    const position = formData.get("position") as string;
-    const application_date = formData.get("application_date") as string;
-    const source = formData.get("source") as string;
+    const rawData = {
+        company: formData.get("company"),
+        position: formData.get("position"),
+        application_date: formData.get("application_date") || null,
+        source: formData.get("source"),
+    };
+
+    const validated = CreateApplicationSchema.safeParse(rawData);
+    if (!validated.success) {
+        return { error: validated.error.issues[0]?.message || "Validation Error" };
+    }
+    const { company, position, application_date, source } = validated.data;
 
     const { error } = await supabase.from("applications").insert({
         student_id: user.id,
@@ -53,15 +63,27 @@ export async function updateApplication(id: string, formData: FormData) {
         throw new Error("Unauthorized");
     }
 
-    const company = formData.get("company") as string;
-    const position = formData.get("position") as string;
-    const application_date = formData.get("application_date") as string;
-    const source = formData.get("source") as string;
-    const status = formData.get("status") as string;
-    const document_result = formData.get("document_result") as string;
-    const resume_created = formData.get("resume_created") === "on";
-    const work_history_created = formData.get("work_history_created") === "on";
-    const portfolio_submitted = formData.get("portfolio_submitted") === "on";
+    const rawData = {
+        company: formData.get("company"),
+        position: formData.get("position"),
+        application_date: formData.get("application_date") || null,
+        source: formData.get("source"),
+        status: formData.get("status"),
+        document_result: formData.get("document_result") || "",
+        resume_created: formData.get("resume_created") === "on",
+        work_history_created: formData.get("work_history_created") === "on",
+        portfolio_submitted: formData.get("portfolio_submitted") === "on",
+    };
+
+    const validated = UpdateApplicationSchema.safeParse(rawData);
+    if (!validated.success) {
+        return { error: validated.error.issues[0]?.message || "Validation Error" };
+    }
+
+    const {
+        company, position, application_date, source, status, document_result,
+        resume_created, work_history_created, portfolio_submitted
+    } = validated.data;
     const { error } = await supabase
         .from("applications")
         .update({
@@ -97,18 +119,28 @@ export async function uploadAttachment(applicationId: string, formData: FormData
     }
 
     const file = formData.get("file") as File;
-    const category = formData.get("category") as string;
-    const currentFileCount = parseInt(formData.get("current_count") as string || "0");
+    const rawCategory = formData.get("category");
+    const rawCount = formData.get("current_count");
 
-    if (!file || !category) {
-        return { error: "ファイルとカテゴリは必須です" };
+    const validated = UploadAttachmentSchema.safeParse({
+        category: rawCategory,
+        current_count: parseInt((rawCount as string) || "0"),
+    });
+
+    if (!validated.success) {
+        return { error: validated.error.issues[0]?.message || "Validation Error" };
     }
 
-    // Validation
+    const { category, current_count } = validated.data;
+
+    // Additional file validation (Zod is bad at File objects in simple schema unless custom)
+    if (!file) {
+        return { error: "ファイルは必須です" };
+    }
     if (file.size > 5 * 1024 * 1024) {
         return { error: "ファイルサイズは5MB以下にしてください" };
     }
-    if (currentFileCount >= 10) {
+    if (current_count >= 10) {
         return { error: "1つの応募につき最大10ファイルまでです" };
     }
 
@@ -175,6 +207,9 @@ export async function uploadAttachment(applicationId: string, formData: FormData
 }
 
 export async function deleteAttachment(attachmentId: string) {
+    if (!z.string().uuid().safeParse(attachmentId).success) {
+        return { error: "Invalid Attachment ID" };
+    }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 

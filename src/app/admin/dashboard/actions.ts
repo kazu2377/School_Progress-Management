@@ -4,6 +4,8 @@ import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
 import { logActivity } from "@/utils/logger";
 import { validateRequestOrigin } from "@/utils/security";
+import { UpdateStudentProfileSchema } from "@/utils/schemas";
+import { z } from "zod";
 
 export async function updateStudentProfile(studentId: string, formData: FormData) {
     const supabase = await createClient();
@@ -28,14 +30,25 @@ export async function updateStudentProfile(studentId: string, formData: FormData
         return { error: "Unauthorized" };
     }
 
-    const fullName = formData.get("full_name") as string;
-    const courseId = formData.get("course_id") as string;
-    const graduation_date = formData.get("graduation_date") as string;
+    const rowData = {
+        full_name: formData.get("full_name"),
+        course_id: formData.get("course_id"),
+        graduation_date: formData.get("graduation_date") || null,
+    };
 
+    const validated = UpdateStudentProfileSchema.safeParse(rowData);
+
+    if (!validated.success) {
+        return { error: validated.error.issues[0]?.message || "Validation Error" };
+    }
+
+    const { full_name, course_id, graduation_date } = validated.data;
+
+    // Update profile (full_name)
     // Update profile (full_name)
     const { error: profileError } = await supabase
         .from("profiles")
-        .update({ full_name: fullName })
+        .update({ full_name })
         .eq("id", studentId);
 
     if (profileError) {
@@ -47,7 +60,7 @@ export async function updateStudentProfile(studentId: string, formData: FormData
     const { error: studentError } = await supabase
         .from("students")
         .update({
-            course_id: courseId,
+            course_id: course_id,
             graduation_date: graduation_date || null
         })
         .eq("id", studentId);
@@ -63,6 +76,10 @@ export async function updateStudentProfile(studentId: string, formData: FormData
 }
 
 export async function deleteStudent(studentId: string) {
+    if (!z.string().uuid().safeParse(studentId).success) {
+        return { error: "Invalid Student ID" };
+    }
+
     const supabase = await createClient();
 
     if (!await validateRequestOrigin()) {

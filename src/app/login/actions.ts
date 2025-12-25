@@ -4,10 +4,19 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { logActivity } from "@/utils/logger";
+import { LoginSchema, SignupSchema } from "@/utils/schemas";
 
 export async function login(formData: FormData) {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
+    const validated = LoginSchema.safeParse({
+        email: formData.get("email"),
+        password: formData.get("password"),
+    });
+
+    if (!validated.success) {
+        redirect("/login?error=" + encodeURIComponent(validated.error.issues[0]?.message || "Login Error"));
+    }
+
+    const { email, password } = validated.data;
 
     let errorRedirectUrl = "";
 
@@ -38,14 +47,21 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const fullName = formData.get("full_name") as string;
-    const courseId = formData.get("course_id") as string;
+    const rawData = {
+        email: formData.get("email"),
+        password: formData.get("password"),
+        full_name: formData.get("full_name"),
+        course_id: formData.get("course_id"),
+    };
 
-    if (!fullName || !courseId) {
-        redirect("/login?error=" + encodeURIComponent("氏名とコースを選択してください。"));
+    const validated = SignupSchema.safeParse(rawData);
+
+    if (!validated.success) {
+        const nextRedirectUrl = "/login?error=" + encodeURIComponent(validated.error.issues[0]?.message || "Signup Error");
+        redirect(nextRedirectUrl);
     }
+
+    const { email, password, full_name, course_id } = validated.data;
 
     let nextRedirectUrl = "";
 
@@ -56,8 +72,8 @@ export async function signup(formData: FormData) {
             password,
             options: {
                 data: {
-                    full_name: fullName,
-                    course_id: courseId,
+                    full_name: full_name,
+                    course_id: course_id,
                 },
             },
         });
