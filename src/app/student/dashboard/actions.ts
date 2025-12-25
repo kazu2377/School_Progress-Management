@@ -120,28 +120,37 @@ export async function uploadAttachment(applicationId: string, formData: FormData
 
     const file = formData.get("file") as File;
     const rawCategory = formData.get("category");
-    const rawCount = formData.get("current_count");
 
     const validated = UploadAttachmentSchema.safeParse({
         category: rawCategory,
-        current_count: parseInt((rawCount as string) || "0"),
     });
 
     if (!validated.success) {
         return { error: validated.error.issues[0]?.message || "Validation Error" };
     }
 
-    const { category, current_count } = validated.data;
+    const { category } = validated.data;
 
-    // Additional file validation (Zod is bad at File objects in simple schema unless custom)
+    // Server-side count verification (Security)
+    const { count: currentFileCount, error: countError } = await supabase
+        .from("application_attachments")
+        .select("*", { count: "exact", head: true })
+        .eq("application_id", applicationId);
+
+    if (countError) {
+        return { error: "件数確認中にエラーが発生しました" };
+    }
+
+    if ((currentFileCount || 0) >= 10) {
+        return { error: "1つの応募につき最大10ファイルまでです" };
+    }
+
+    // Additional file validation
     if (!file) {
         return { error: "ファイルは必須です" };
     }
     if (file.size > 5 * 1024 * 1024) {
         return { error: "ファイルサイズは5MB以下にしてください" };
-    }
-    if (current_count >= 10) {
-        return { error: "1つの応募につき最大10ファイルまでです" };
     }
 
     // 1. Upload to Storage

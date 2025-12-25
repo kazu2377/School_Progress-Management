@@ -55,5 +55,4 @@ export const UpdateApplicationSchema = CreateApplicationSchema.extend({
 
 export const UploadAttachmentSchema = z.object({
     category: AttachmentCategoryEnum,
-    current_count: z.number().max(10),
 });

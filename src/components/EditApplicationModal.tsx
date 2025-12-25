@@ -35,6 +35,15 @@ export default function EditApplicationModal({ application }: { application: any
         setUploading(true);
 
         const formData = new FormData(e.currentTarget);
+
+        // Client-side validation
+        const file = formData.get("file") as File;
+        if (file && file.size > 5 * 1024 * 1024) {
+            alert("ファイルサイズは5MB以下にしてください");
+            setUploading(false);
+            return;
+        }
+
         // append current count for validation
         const currentCount = application.application_attachments?.length || 0;
         formData.append('current_count', currentCount.toString());
