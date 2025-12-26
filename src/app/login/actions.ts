@@ -100,12 +100,7 @@ export async function signup(formData: FormData) {
 
         if (error) {
             console.error("Signup failed:", error.message);
-            await logger.warn({
-                action_type: "SIGNUP_FAILED",
-                resource: "auth",
-                message: "新規登録に失敗しました",
-                details: { email, reason: error.message }
-            });
+            // 注意: 未認証ユーザーはRLSによりactivity_logsへの書き込みが許可されていないため、ここではログを記録しない
             nextRedirectUrl = "/login?error=" + encodeURIComponent(error.message);
         } else {
             revalidatePath("/login");
