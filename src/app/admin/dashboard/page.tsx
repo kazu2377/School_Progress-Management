@@ -39,7 +39,7 @@ export default async function AdminDashboard({
         .from("students")
         .select(`
             *,
-            profiles (full_name),
+            profiles!inner (full_name),
             courses (name),
             applications (*)
         `);
