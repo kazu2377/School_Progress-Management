@@ -29,14 +29,29 @@ ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# 実行に必要な最小限のファイルをビルドステージからコピー
-COPY --from=builder /app/public ./public
+# セキュリティ：非rootユーザーを作成
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
+
+# 実行に必要な最小限のファイルをビルドステージからコピー（所有権も設定）
+COPY --from=builder --chown=nextjs:nodejs /app/public ./public
 
 # standaloneモードで生成されたファイルをコピー
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# 非rootユーザーに切り替え
+USER nextjs
+
+# ヘルスチェック
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
 EXPOSE 3000
+
+# メタデータ
+LABEL org.opencontainers.image.title="School Progress Management"
+LABEL org.opencontainers.image.description="職業訓練校進捗管理システム"
 
 # サーバーの起動
 CMD ["node", "server.js"]
