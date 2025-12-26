@@ -40,7 +40,11 @@ export async function updateSession(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     // Basic RBAC redirection
-    if (!user && !request.nextUrl.pathname.startsWith("/login") && !request.nextUrl.pathname.startsWith("/auth")) {
+    if (!user &&
+        !request.nextUrl.pathname.startsWith("/login") &&
+        !request.nextUrl.pathname.startsWith("/auth") &&
+        !request.nextUrl.pathname.startsWith("/manual_demo")
+    ) {
         // No user, redirect to login
         const url = request.nextUrl.clone();
         url.pathname = "/login";
@@ -71,41 +75,41 @@ export async function updateSession(request: NextRequest) {
 
         // Strict RBAC for specific paths
         if (request.nextUrl.pathname.startsWith('/admin')) {
-             // Fetch profile to get role if we haven't already (optimization: we could reuse if we fetched above, but logic above is inside "if path is / or /login")
-             // Actually, the block above only runs for / and /login. So we need to fetch role here if not checked.
-             // To avoid double fetching, let's restructure slightly to fetch role once if user exists.
-             const { data: profile } = await supabase
+            // Fetch profile to get role if we haven't already (optimization: we could reuse if we fetched above, but logic above is inside "if path is / or /login")
+            // Actually, the block above only runs for / and /login. So we need to fetch role here if not checked.
+            // To avoid double fetching, let's restructure slightly to fetch role once if user exists.
+            const { data: profile } = await supabase
                 .from('profiles')
                 .select('role_id')
                 .eq('id', user.id)
                 .single();
-             
-             const role = profile?.role_id;
-             
-             if (role !== 'admin') {
-                 const url = request.nextUrl.clone();
-                 url.pathname = "/"; // or /student/dashboard, or error page. Keeping it safe with root.
-                 return NextResponse.redirect(url);
-             }
+
+            const role = profile?.role_id;
+
+            if (role !== 'admin') {
+                const url = request.nextUrl.clone();
+                url.pathname = "/"; // or /student/dashboard, or error page. Keeping it safe with root.
+                return NextResponse.redirect(url);
+            }
         }
-        
+
         if (request.nextUrl.pathname.startsWith('/student')) {
-             const { data: profile } = await supabase
+            const { data: profile } = await supabase
                 .from('profiles')
                 .select('role_id')
                 .eq('id', user.id)
                 .single();
-             
-             const role = profile?.role_id;
-             
-             // Optional: Strict check for student role. Admin might need access?
-             // If admin needs access, use: if (role !== 'student' && role !== 'admin')
-             // For now adhering to strict separation as requested.
-             if (role !== 'student' && role !== 'admin') {
-                 const url = request.nextUrl.clone();
-                 url.pathname = "/"; 
-                 return NextResponse.redirect(url);
-             }
+
+            const role = profile?.role_id;
+
+            // Optional: Strict check for student role. Admin might need access?
+            // If admin needs access, use: if (role !== 'student' && role !== 'admin')
+            // For now adhering to strict separation as requested.
+            if (role !== 'student' && role !== 'admin') {
+                const url = request.nextUrl.clone();
+                url.pathname = "/";
+                return NextResponse.redirect(url);
+            }
         }
     }
 
