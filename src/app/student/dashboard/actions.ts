@@ -5,17 +5,21 @@ import { revalidatePath } from "next/cache";
 import { validateRequestOrigin } from "@/utils/security";
 import { CreateApplicationSchema, UpdateApplicationSchema, UploadAttachmentSchema } from "@/utils/schemas";
 import { z } from "zod";
+import { Logger } from "@/utils/logger";
 
 export async function addApplication(formData: FormData) {
+    const logger = await Logger.init();
     const supabase = await createClient();
 
     if (!await validateRequestOrigin()) {
+        await logger.warn({ action_type: "SECURITY_IsInvalidOrigin", resource: "application", message: "Invalid Request Origin" });
         return { error: "Invalid Request Origin" };
     }
 
     const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
+        await logger.warn({ action_type: "SECURITY_UNAUTHORIZED", resource: "application", message: "User not authenticated" });
         throw new Error("Unauthorized");
     }
 
@@ -32,25 +36,38 @@ export async function addApplication(formData: FormData) {
     }
     const { company, position, application_date, source } = validated.data;
 
-    const { error } = await supabase.from("applications").insert({
+    const { error, data: newApp } = await supabase.from("applications").insert({
         student_id: user.id,
         company,
         position,
         application_date: application_date || null,
         source,
         status: "応募中",
-    });
+    }).select().single();
 
     if (error) {
-        console.error("Add application error:", error);
+        await logger.error({
+            action_type: "APPLICATION_CREATE_ERROR",
+            resource: "application",
+            error: error,
+            input_params: { company, position, application_date, source }
+        });
         return { error: error.message };
     }
+
+    await logger.info({
+        action_type: "APPLICATION_CREATE",
+        resource: "application",
+        message: "新規応募を作成しました",
+        details: { applicationId: newApp.id, company, position }
+    });
 
     revalidatePath("/student/dashboard");
     return { success: true };
 }
 
 export async function updateApplication(id: string, formData: FormData) {
+    const logger = await Logger.init();
     const supabase = await createClient();
 
     if (!await validateRequestOrigin()) {
@@ -80,10 +97,20 @@ export async function updateApplication(id: string, formData: FormData) {
         return { error: validated.error.issues[0]?.message || "Validation Error" };
     }
 
+    // 更新前のデータを取得（ログのDiff用）
+    const { data: oldData } = await supabase
+        .from("applications")
+        .select("*")
+        .eq("id", id)
+        .eq("student_id", user.id)
+        .single();
+
     const {
         company, position, application_date, source, status, document_result,
         resume_created, work_history_created, portfolio_submitted
     } = validated.data;
+
+    // DB更新
     const { error } = await supabase
         .from("applications")
         .update({
@@ -93,20 +120,38 @@ export async function updateApplication(id: string, formData: FormData) {
             source,
             status,
             document_result,
+            // チェックボックスの状態はここでは更新しない（UI側でdisabled/管理対象外のため、または別ロジック？）
+            // 元のコードでは update にこれらを含めていないため、ここでも除外して正しいか確認が必要ですが、
+            // 元コードの update({ company... document_result }) に従います。
         })
         .eq("id", id)
-        .eq("student_id", user.id); // Security: ensure it belongs to the user
+        .eq("student_id", user.id);
 
     if (error) {
-        console.error("Update application error:", error);
+        await logger.error({
+            action_type: "APPLICATION_UPDATE_ERROR",
+            resource: "application",
+            error: error,
+            details: { id }
+        });
         return { error: error.message };
     }
+
+    await logger.info({
+        action_type: "APPLICATION_UPDATE",
+        resource: "application",
+        message: "応募情報を更新しました",
+        old_value: oldData,
+        new_value: validated.data, // 厳密にはDBに保存されたデータと少し異なる可能性（自動更新フィールド等）があるが、意図は伝わる
+        details: { id, company }
+    });
 
     revalidatePath("/student/dashboard");
     return { success: true };
 }
 
 export async function uploadAttachment(applicationId: string, formData: FormData) {
+    const logger = await Logger.init();
     const supabase = await createClient();
 
     if (!await validateRequestOrigin()) {
@@ -153,12 +198,6 @@ export async function uploadAttachment(applicationId: string, formData: FormData
         return { error: "ファイルサイズは5MB以下にしてください" };
     }
 
-    // 1. Upload to Storage
-    // Path: {application_id}/{category}/{filename}
-    // Only verify application ownership implicitly via RLS policy on insert, 
-    // but good to check explicit existence first properly or rely on storage RLS specific path.
-    // Our storage policy relies on path structure matching application ID owned by student.
-
     // Check if application belongs to user first to avoid wasted upload
     const { data: app } = await supabase.from('applications').select('id').eq('id', applicationId).eq('student_id', user.id).single();
     if (!app) {
@@ -175,7 +214,12 @@ export async function uploadAttachment(applicationId: string, formData: FormData
         .upload(path, file);
 
     if (uploadError) {
-        console.error("Upload Error:", uploadError);
+        await logger.error({
+            action_type: "ATTACHMENT_UPLOAD_ERROR",
+            resource: "storage",
+            error: uploadError,
+            details: { applicationId, category, fileName: file.name }
+        });
         return { error: "アップロードに失敗しました" };
     }
 
@@ -211,18 +255,27 @@ export async function uploadAttachment(applicationId: string, formData: FormData
             .eq("id", applicationId);
     }
 
+    await logger.info({
+        action_type: "ATTACHMENT_UPLOAD",
+        resource: "application_attachment",
+        message: "ファイルをアップロードしました",
+        details: { applicationId, category, fileName: file.name, fileSize: file.size }
+    });
+
     revalidatePath("/student/dashboard");
     return { success: true, data: insertedData };
 }
 
 export async function deleteAttachment(attachmentId: string) {
+    const logger = await Logger.init();
+
     if (!z.string().uuid().safeParse(attachmentId).success) {
         return { error: "Invalid Attachment ID" };
     }
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
-    if (!await validateRequestOrigin()) throw new Error("Invalid Request Origin"); // consistent with line 166 which throws
+    if (!await validateRequestOrigin()) throw new Error("Invalid Request Origin");
 
     if (!user) throw new Error("Unauthorized");
 
@@ -237,20 +290,18 @@ export async function deleteAttachment(attachmentId: string) {
         return { error: "ファイルが見つかりません" };
     }
 
-    // Verify ownership (RLS handles fetch but double check logic)
-    // Actually fetching it successfully means RLS passed (user owns the application of this attachment)
-
     // 1. Remove from Storage
     const { error: storageError } = await supabase.storage
         .from('application-attachments')
         .remove([attachment.file_path]);
 
     if (storageError) {
-        console.error("Storage Delete Error:", storageError);
-        // Continue to delete from DB to keep state consistent? 
-        // Or fail? Better fail to avoid broken links? 
-        // But if file is gone, we usually want DB gone too.
-        // Let's return error for safety.
+        await logger.error({
+            action_type: "ATTACHMENT_DELETE_ERROR",
+            resource: "storage",
+            error: storageError,
+            details: { attachmentId, path: attachment.file_path }
+        });
         return { error: "ファイルの削除に失敗しました" };
     }
 
@@ -284,6 +335,18 @@ export async function deleteAttachment(attachmentId: string) {
                 .eq("id", attachment.application_id);
         }
     }
+
+    await logger.info({
+        action_type: "ATTACHMENT_DELETE",
+        resource: "application_attachment",
+        message: "ファイルを削除しました",
+        details: {
+            attachmentId,
+            applicationId: attachment.application_id,
+            fileName: attachment.file_name,
+            category: attachment.category
+        }
+    });
 
     revalidatePath("/student/dashboard");
     return { success: true };

@@ -2,7 +2,13 @@ import { type NextRequest } from "next/server";
 import { updateSession } from "@/utils/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-    return await updateSession(request);
+    const response = await updateSession(request);
+
+    // Request ID を生成してヘッダーに付与
+    const requestId = crypto.randomUUID();
+    response.headers.set("X-Request-ID", requestId);
+
+    return response;
 }
 
 export const config = {

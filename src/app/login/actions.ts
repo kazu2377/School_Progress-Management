@@ -3,10 +3,12 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { logActivity, logActivityAnonymous } from "@/utils/logger";
+import { Logger } from "@/utils/logger";
 import { LoginSchema, SignupSchema } from "@/utils/schemas";
 
 export async function login(formData: FormData) {
+    const logger = await Logger.init();
+
     const validated = LoginSchema.safeParse({
         email: formData.get("email"),
         password: formData.get("password"),
@@ -29,13 +31,28 @@ export async function login(formData: FormData) {
 
         if (error) {
             console.error("Login failed:", error.message);
-            await logActivityAnonymous("login_failed", { email, reason: error.message });
+            await logger.warn({
+                action_type: "LOGIN_FAILED",
+                resource: "auth",
+                message: "ログインに失敗しました",
+                details: { email, reason: error.message }
+            });
             errorRedirectUrl = "/login?error=" + encodeURIComponent(error.message);
         } else {
-            await logActivity("login_success", { email });
+            await logger.info({
+                action_type: "LOGIN_SUCCESS",
+                resource: "auth",
+                message: "ログインに成功しました",
+                details: { email }
+            });
         }
     } catch (err: any) {
         console.error("Login action error:", err);
+        await logger.error({
+            action_type: "LOGIN_ERROR",
+            resource: "auth",
+            error: err,
+        });
         errorRedirectUrl = "/login?error=Server error during login";
     }
 
@@ -48,6 +65,8 @@ export async function login(formData: FormData) {
 }
 
 export async function signup(formData: FormData) {
+    const logger = await Logger.init();
+
     const rawData = {
         email: formData.get("email"),
         password: formData.get("password"),
@@ -81,15 +100,30 @@ export async function signup(formData: FormData) {
 
         if (error) {
             console.error("Signup failed:", error.message);
-            await logActivityAnonymous("signup_failed", { email, reason: error.message });
+            await logger.warn({
+                action_type: "SIGNUP_FAILED",
+                resource: "auth",
+                message: "新規登録に失敗しました",
+                details: { email, reason: error.message }
+            });
             nextRedirectUrl = "/login?error=" + encodeURIComponent(error.message);
         } else {
             revalidatePath("/login");
-            await logActivityAnonymous("signup_success", { email });
+            await logger.info({
+                action_type: "SIGNUP_SUCCESS",
+                resource: "auth",
+                message: "新規登録を受け付けました",
+                details: { email, full_name, course_id }
+            });
             nextRedirectUrl = "/login?message=" + encodeURIComponent("新規登録を受け付けました。メールを確認して認証を完了してください。");
         }
     } catch (err: any) {
         console.error("Signup action error:", err);
+        await logger.error({
+            action_type: "SIGNUP_ERROR",
+            resource: "auth",
+            error: err
+        });
         nextRedirectUrl = "/login?error=Server error during signup";
     }
 
