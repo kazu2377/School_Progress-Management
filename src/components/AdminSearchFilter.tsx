@@ -118,7 +118,7 @@ export default function AdminSearchFilter({ courses }: { courses: any[] }) {
                 >
                     <option value="">すべての結果</option>
                     <option value="通過">書類通過</option>
-                    <option value="お見送り">お見送り</option>
+                    <option value="不通過">不通過</option>
                     <option value="審査中">審査中</option>
                 </select>
                 <input

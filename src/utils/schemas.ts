@@ -11,7 +11,7 @@ export const ApplicationStatusEnum = z.enum([
     "辞退",
 ]);
 
-export const DocumentResultEnum = z.enum(["通過", "不合格", "待ち", ""]);
+export const DocumentResultEnum = z.enum(["審査中", "通過", "不通過", ""]);
 
 export const AttachmentCategoryEnum = z.enum(["resume", "cv", "portfolio", "other"]);
 
