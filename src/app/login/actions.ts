@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/utils/supabase/server";
-import { logActivity } from "@/utils/logger";
+import { logActivity, logActivityAnonymous } from "@/utils/logger";
 import { LoginSchema, SignupSchema } from "@/utils/schemas";
 
 export async function login(formData: FormData) {
@@ -29,6 +29,7 @@ export async function login(formData: FormData) {
 
         if (error) {
             console.error("Login failed:", error.message);
+            await logActivityAnonymous("login_failed", { email, reason: error.message });
             errorRedirectUrl = "/login?error=" + encodeURIComponent(error.message);
         } else {
             await logActivity("login_success", { email });
@@ -80,9 +81,11 @@ export async function signup(formData: FormData) {
 
         if (error) {
             console.error("Signup failed:", error.message);
+            await logActivityAnonymous("signup_failed", { email, reason: error.message });
             nextRedirectUrl = "/login?error=" + encodeURIComponent(error.message);
         } else {
             revalidatePath("/login");
+            await logActivityAnonymous("signup_success", { email });
             nextRedirectUrl = "/login?message=" + encodeURIComponent("新規登録を受け付けました。メールを確認して認証を完了してください。");
         }
     } catch (err: any) {
