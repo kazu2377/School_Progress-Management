@@ -6,6 +6,29 @@ import { createClient } from "@/utils/supabase/server";
 import { Logger } from "@/utils/logger";
 import { LoginSchema, SignupSchema } from "@/utils/schemas";
 
+/**
+ * Supabase/Authのエラーメッセージを日本語に変換するヘルパー関数
+ */
+function translateAuthError(message: string): string {
+    if (message.includes("Invalid login credentials")) {
+        return "メールアドレスまたはパスワードが正しくありません";
+    }
+    if (message.includes("User already registered")) {
+        return "このメールアドレスは既に登録されています";
+    }
+    if (message.includes("Password should be at least")) {
+        return "パスワードは6文字以上である必要があります";
+    }
+    if (message.includes("For security purposes, you can only request this once every")) {
+        return "セキュリティのため、しばらく時間を置いてから再試行してください";
+    }
+    if (message.includes("Email not confirmed")) {
+        return "メールアドレスが認証されていません。受信トレイを確認してください";
+    }
+    // その他のエラーはそのまま、または汎用的なメッセージを表示
+    return `エラーが発生しました: ${message}`;
+}
+
 export async function login(formData: FormData) {
     const logger = await Logger.init();
 
@@ -15,7 +38,7 @@ export async function login(formData: FormData) {
     });
 
     if (!validated.success) {
-        redirect("/login?error=" + encodeURIComponent(validated.error.issues[0]?.message || "Login Error"));
+        redirect("/login?error=" + encodeURIComponent(validated.error.issues[0]?.message || "ログインエラー"));
     }
 
     const { email, password } = validated.data;
@@ -37,7 +60,8 @@ export async function login(formData: FormData) {
                 message: "ログインに失敗しました",
                 details: { email, reason: error.message }
             });
-            errorRedirectUrl = "/login?error=" + encodeURIComponent(error.message);
+            const japaneseError = translateAuthError(error.message);
+            errorRedirectUrl = "/login?error=" + encodeURIComponent(japaneseError);
         } else {
             await logger.info({
                 action_type: "LOGIN_SUCCESS",
@@ -53,7 +77,7 @@ export async function login(formData: FormData) {
             resource: "auth",
             error: err,
         });
-        errorRedirectUrl = "/login?error=Server error during login";
+        errorRedirectUrl = "/login?error=" + encodeURIComponent("サーバーエラーが発生しました");
     }
 
     if (errorRedirectUrl) {
@@ -77,7 +101,7 @@ export async function signup(formData: FormData) {
     const validated = SignupSchema.safeParse(rawData);
 
     if (!validated.success) {
-        const nextRedirectUrl = "/login?error=" + encodeURIComponent(validated.error.issues[0]?.message || "Signup Error");
+        const nextRedirectUrl = "/login?error=" + encodeURIComponent(validated.error.issues[0]?.message || "登録エラー");
         redirect(nextRedirectUrl);
     }
 
@@ -101,7 +125,8 @@ export async function signup(formData: FormData) {
         if (error) {
             console.error("Signup failed:", error.message);
             // 注意: 未認証ユーザーはRLSによりactivity_logsへの書き込みが許可されていないため、ここではログを記録しない
-            nextRedirectUrl = "/login?error=" + encodeURIComponent(error.message);
+            const japaneseError = translateAuthError(error.message);
+            nextRedirectUrl = "/login?error=" + encodeURIComponent(japaneseError);
         } else {
             revalidatePath("/login");
             await logger.info({
@@ -119,7 +144,7 @@ export async function signup(formData: FormData) {
             resource: "auth",
             error: err
         });
-        nextRedirectUrl = "/login?error=Server error during signup";
+        nextRedirectUrl = "/login?error=" + encodeURIComponent("登録処理中にサーバーエラーが発生しました");
     }
 
     redirect(nextRedirectUrl);
