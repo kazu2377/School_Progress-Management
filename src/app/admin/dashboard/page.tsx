@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
-import { LogOut, UserPlus } from "lucide-react";
+import { LogOut } from "lucide-react";
 import AdminSearchFilter from "@/components/AdminSearchFilter";
 import StudentEditModal from "@/components/StudentEditModal";
 
@@ -201,12 +201,7 @@ export default async function AdminDashboard({
                             応募企業一覧
                         </a>
                     </div>
-                    {currentTab === 'students' && (
-                        <button className="bg-primary text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-primary-light flex items-center gap-2 transition-transform hover:-translate-y-px">
-                            <UserPlus size={18} />
-                            新規登録
-                        </button>
-                    )}
+
                 </div>
 
                 <div className="overflow-x-auto">
