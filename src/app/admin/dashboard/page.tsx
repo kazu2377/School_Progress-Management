@@ -7,7 +7,17 @@ import StudentEditModal from "@/components/StudentEditModal";
 export default async function AdminDashboard({
     searchParams,
 }: {
-    searchParams: Promise<{ course_id?: string; month?: string; tab?: string; q?: string; status?: string; result?: string }>;
+    searchParams: Promise<{
+        course_id?: string;
+        month?: string;
+        tab?: string;
+        q_student?: string;
+        q_company?: string;
+        q_position?: string;
+        q_file?: string;
+        status?: string;
+        result?: string;
+    }>;
 }) {
     const params = await searchParams;
     const currentTab = params.tab || "students";
@@ -50,10 +60,9 @@ export default async function AdminDashboard({
     if (params.month) {
         studentsQuery = studentsQuery.gte("graduation_date", `${params.month}-01`).lte("graduation_date", `${params.month}-31`);
     }
-    // Simple filter for students tab (keyword only on name)
-    if (params.q) {
-        // We need to use inner join for filtering profile fields
-        studentsQuery = studentsQuery.ilike("profiles.full_name", `%${params.q}%`);
+    // Specific filter for student name
+    if (params.q_student) {
+        studentsQuery = studentsQuery.ilike("profiles.full_name", `%${params.q_student}%`);
     }
 
     const { data: students } = await studentsQuery;
@@ -90,18 +99,32 @@ export default async function AdminDashboard({
 
     const { data: rawApplications } = await appsQuery;
 
-    // Filter by keyword in memory for more flexibility (cross-table OR)
+    // Filter by specific fields in memory (cross-table)
     let filteredApps = rawApplications || [];
-    if (params.q) {
-        const q = params.q.toLowerCase();
-        filteredApps = filteredApps.filter((app: any) => {
-            const studentName = app.students?.profiles?.full_name?.toLowerCase() || "";
-            const company = app.company?.toLowerCase() || "";
-            const position = app.position?.toLowerCase() || "";
-            const attachments = app.application_attachments?.some((a: any) => a.file_name.toLowerCase().includes(q)) || false;
 
-            return studentName.includes(q) || company.includes(q) || position.includes(q) || attachments;
-        });
+    if (params.q_student) {
+        const q = params.q_student.toLowerCase();
+        filteredApps = filteredApps.filter((app: any) =>
+            app.students?.profiles?.full_name?.toLowerCase().includes(q)
+        );
+    }
+    if (params.q_company) {
+        const q = params.q_company.toLowerCase();
+        filteredApps = filteredApps.filter((app: any) =>
+            app.company?.toLowerCase().includes(q)
+        );
+    }
+    if (params.q_position) {
+        const q = params.q_position.toLowerCase();
+        filteredApps = filteredApps.filter((app: any) =>
+            app.position?.toLowerCase().includes(q)
+        );
+    }
+    if (params.q_file) {
+        const q = params.q_file.toLowerCase();
+        filteredApps = filteredApps.filter((app: any) =>
+            app.application_attachments?.some((a: any) => a.file_name.toLowerCase().includes(q))
+        );
     }
 
     // Generate signed URLs for attachments
