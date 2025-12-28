@@ -13,6 +13,13 @@
                 "-y",
                 "chrome-devtools-mcp@latest"
             ]
+        },
+        "supabase": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "supabase-mcp@latest"
+            ]
         }
     }
 }

@@ -1,138 +1,139 @@
 <!DOCTYPE html>
 <html lang="ja">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>使い方マニュアル | School Progress Management</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
 
-<body>
-
+  <body>
     <!-- Header -->
     <header class="header">
-        <div style="display: flex; align-items: center; gap: 1rem;">
-            <button class="menu-toggle" id="menuToggle" aria-label="メニューを開く">☰</button>
-            <a href="#" class="header-logo">School Progress</a>
-        </div>
-        <nav class="header-nav">
-            <a href="#">ホームに戻る</a>
-            <a href="#">サポート</a>
-        </nav>
+      <div style="display: flex; align-items: center; gap: 1rem">
+        <button class="menu-toggle" id="menuToggle" aria-label="メニューを開く">☰</button>
+        <a href="#" class="header-logo">School Progress３</a>
+      </div>
+      <nav class="header-nav">
+        <a href="#">ホームに戻る</a>
+        <a href="#">サポート</a>
+      </nav>
     </header>
 
     <div class="layout-container">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-title">基本ガイド</div>
-            <ul class="nav-list">
-                <li class="nav-item"><a href="#intro" class="nav-link active">はじめに</a></li>
-                <li class="nav-item"><a href="#signup" class="nav-link">新規登録の流れ</a></li>
-                <li class="nav-item"><a href="#login" class="nav-link">ログイン方法</a></li>
-            </ul>
+      <!-- Sidebar -->
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-title">基本ガイド</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#intro" class="nav-link active">はじめに</a></li>
+          <li class="nav-item"><a href="#signup" class="nav-link">新規登録の流れ</a></li>
+          <li class="nav-item"><a href="#login" class="nav-link">ログイン方法</a></li>
+        </ul>
 
-            <div class="sidebar-title">管理者向け</div>
-            <ul class="nav-list">
+        <div class="sidebar-title">管理者向け</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#progress-mgmt" class="nav-link">進捗管理</a></li>
+          <li class="nav-item"><a href="#settings" class="nav-link">設定変更</a></li>
+        </ul>
 
-                <li class="nav-item"><a href="#progress-mgmt" class="nav-link">進捗管理</a></li>
-                <li class="nav-item"><a href="#settings" class="nav-link">設定変更</a></li>
-            </ul>
+        <div class="sidebar-title">生徒向け</div>
+        <ul class="nav-list">
+          <li class="nav-item"><a href="#my-progress" class="nav-link">進捗の確認</a></li>
+          <li class="nav-item"><a href="#profile" class="nav-link">プロフィール編集</a></li>
+        </ul>
+      </aside>
 
-            <div class="sidebar-title">生徒向け</div>
-            <ul class="nav-list">
-                <li class="nav-item"><a href="#my-progress" class="nav-link">進捗の確認</a></li>
-                <li class="nav-item"><a href="#profile" class="nav-link">プロフィール編集</a></li>
-            </ul>
-        </aside>
+      <!-- Main Content -->
+      <main class="main-content">
+        <section id="intro" class="manual-section">
+          <h1 class="section-title">はじめに</h1>
+          <p class="manual-text">
+            School Progress Managementシステムへようこそ。<br />
+            このマニュアルでは、システムの基本的な使い方や、管理者・生徒それぞれの機能について詳しく解説します。
+          </p>
+          <div class="info-box">
+            <strong>ヒント:</strong>
+            左側のメニュー（スマホの場合は上部メニューボタン）から知りたい項目を選んでください。
+          </div>
+        </section>
 
-        <!-- Main Content -->
-        <main class="main-content">
+        <section id="signup" class="manual-section">
+          <h2 class="section-title">新規登録の流れ</h2>
+          <p class="manual-text">
+            システムを初めて利用する場合は、以下の手順で新規登録を行ってください。
+          </p>
+          <ol class="step-list">
+            <li>
+              ログイン画面の上部にある<strong>「新規登録」タブ</strong>を選択して切り替えます。
+            </li>
+            <li>必要な情報（氏名、コース、メールアドレス、パスワード）を入力します。</li>
+            <li>「アカウントを作成する」ボタンをクリックします。</li>
+          </ol>
+          <div class="info-box">
+            <strong>ヒント:</strong>
+            「新規登録」タブに切り替えると、名前やコースの入力欄が表示されます。
+          </div>
+        </section>
 
-            <section id="intro" class="manual-section">
-                <h1 class="section-title">はじめに</h1>
-                <p class="manual-text">
-                    School Progress Managementシステムへようこそ。<br>
-                    このマニュアルでは、システムの基本的な使い方や、管理者・生徒それぞれの機能について詳しく解説します。
-                </p>
-                <div class="info-box">
-                    <strong>ヒント:</strong> 左側のメニュー（スマホの場合は上部メニューボタン）から知りたい項目を選んでください。
-                </div>
-            </section>
+        <section id="login" class="manual-section">
+          <h2 class="section-title">ログイン方法</h2>
+          <p class="manual-text">
+            アカウント作成後、または既存のアカウントをお持ちの方は以下の手順でログインしてください。
+          </p>
 
-            <section id="signup" class="manual-section">
-                <h2 class="section-title">新規登録の流れ</h2>
-                <p class="manual-text">システムを初めて利用する場合は、以下の手順で新規登録を行ってください。</p>
-                <ol class="step-list">
-                    <li>ログイン画面の上部にある<strong>「新規登録」タブ</strong>を選択して切り替えます。</li>
-                    <li>必要な情報（氏名、コース、メールアドレス、パスワード）を入力します。</li>
-                    <li>「アカウントを作成する」ボタンをクリックします。</li>
-                </ol>
-                <div class="info-box">
-                    <strong>ヒント:</strong> 「新規登録」タブに切り替えると、名前やコースの入力欄が表示されます。
-                </div>
-            </section>
+          <h3 class="subsection-title">通常のログイン</h3>
+          <ol class="step-list">
+            <li>ログイン画面にアクセスします。</li>
+            <li>登録したメールアドレスとパスワードを入力します。</li>
+            <li>「ログイン」ボタンを押下してください。</li>
+          </ol>
 
-            <section id="login" class="manual-section">
-                <h2 class="section-title">ログイン方法</h2>
-                <p class="manual-text">アカウント作成後、または既存のアカウントをお持ちの方は以下の手順でログインしてください。</p>
+          <h3 class="subsection-title">新規登録直後のログイン</h3>
+          <p class="manual-text">
+            新規登録が完了すると、自動的にダッシュボードへ遷移する場合と、再度ログインを求められる場合があります。
+          </p>
+          <div class="info-box">
+            登録したばかりのメールアドレスとパスワードを忘れないようご注意ください。
+          </div>
+          <div class="image-placeholder">[ログイン画面のスクリーンショット]</div>
+        </section>
 
-                <h3 class="subsection-title">通常のログイン</h3>
-                <ol class="step-list">
-                    <li>ログイン画面にアクセスします。</li>
-                    <li>登録したメールアドレスとパスワードを入力します。</li>
-                    <li>「ログイン」ボタンを押下してください。</li>
-                </ol>
-
-                <h3 class="subsection-title">新規登録直後のログイン</h3>
-                <p class="manual-text">新規登録が完了すると、自動的にダッシュボードへ遷移する場合と、再度ログインを求められる場合があります。</p>
-                <div class="info-box">
-                    登録したばかりのメールアドレスとパスワードを忘れないようご注意ください。
-                </div>
-                <div class="image-placeholder">
-                    [ログイン画面のスクリーンショット]
-                </div>
-            </section>
-
-
-
-            <section id="my-progress" class="manual-section">
-                <h2 class="section-title">進捗の確認（生徒）</h2>
-                <p class="manual-text">自分の学習進捗状況をグラフやリストで確認できます。</p>
-                <div class="image-placeholder">
-                    [生徒ダッシュボードの画像]
-                </div>
-            </section>
-
-        </main>
+        <section id="my-progress" class="manual-section">
+          <h2 class="section-title">進捗の確認（生徒）</h2>
+          <p class="manual-text">自分の学習進捗状況をグラフやリストで確認できます。</p>
+          <div class="image-placeholder">[生徒ダッシュボードの画像]</div>
+        </section>
+      </main>
     </div>
 
     <script>
-        // Mobile Sidebar Toggle
-        const menuToggle = document.getElementById('menuToggle');
-        const sidebar = document.getElementById('sidebar');
+      // Mobile Sidebar Toggle
+      const menuToggle = document.getElementById("menuToggle");
+      const sidebar = document.getElementById("sidebar");
 
-        menuToggle.addEventListener('click', () => {
-            sidebar.classList.toggle('active');
+      menuToggle.addEventListener("click", () => {
+        sidebar.classList.toggle("active");
+      });
+
+      // Close sidebar when clicking a link on mobile
+      const navLinks = document.querySelectorAll(".nav-link");
+      navLinks.forEach((link) => {
+        link.addEventListener("click", () => {
+          if (window.innerWidth <= 768) {
+            sidebar.classList.remove("active");
+          }
+
+          // Update active state
+          navLinks.forEach((nav) => nav.classList.remove("active"));
+          link.classList.add("active");
         });
-
-        // Close sidebar when clicking a link on mobile
-        const navLinks = document.querySelectorAll('.nav-link');
-        navLinks.forEach(link => {
-            link.addEventListener('click', () => {
-                if (window.innerWidth <= 768) {
-                    sidebar.classList.remove('active');
-                }
-
-                // Update active state
-                navLinks.forEach(nav => nav.classList.remove('active'));
-                link.classList.add('active');
-            });
-        });
+      });
     </script>
-</body>
-
+  </body>
 </html>
