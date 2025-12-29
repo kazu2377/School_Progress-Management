@@ -4,6 +4,11 @@ import { headers } from "next/headers";
  * Validates that the request's Origin header matches the Host header.
  * This is used to prevent CSRF attacks on Server Actions.
  */
+
+// これは不正なサイトを送られて、自分のサーバーを攻撃される、
+// だから自分のサイトのドメインから来ているかチェックすることが必要
+
+
 export async function validateRequestOrigin(): Promise<boolean> {
     const headersList = await headers();
     const origin = headersList.get("origin");
