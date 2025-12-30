@@ -1,10 +1,11 @@
 "use server";
 
+import { logActivity } from "@/utils/logger";
+import { UpdateStudentProfileSchema } from "@/utils/schemas";
+import { validateRequestOrigin } from "@/utils/security";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { logActivity } from "@/utils/logger";
-import { validateRequestOrigin } from "@/utils/security";
-import { UpdateStudentProfileSchema } from "@/utils/schemas";
 import { z } from "zod";
 
 export async function updateStudentProfile(studentId: string, formData: FormData) {
@@ -119,4 +120,58 @@ export async function deleteStudent(studentId: string) {
     await logActivity("admin_delete_student_success", { target_student_id: studentId });
     revalidatePath("/admin/dashboard");
     return { success: true };
+}
+
+/**
+ * Invite User Action
+ * Uses Service Role Key to bypass RLS and invite user via email.
+ */
+
+export async function inviteUser(formData: FormData) {
+    const email = formData.get("email") as string;
+    const fullName = formData.get("full_name") as string;
+    const courseId = formData.get("course_id") as string;
+    const roleId = formData.get("role_id") as string || "student"; 
+
+    if (!email || !fullName || !courseId) {
+        return { error: "必須項目が不足しています" };
+    }
+
+    try {
+        const supabaseAdmin = createAdminClient();
+        
+        // 1. Invite User by Email
+        // This sends an email to the user with a magic link to set their password.
+        // The user is created in auth.users immediately with 'invited' status.
+        const { data: authData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
+            data: {
+                full_name: fullName,
+                course_id: courseId,
+                role_id: roleId,
+                // Add any other metadata needed for triggers
+            },
+           // redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback?next=/dashboard` // Adjust as needed
+        });
+
+        if (inviteError) {
+            console.error("Invite Error:", inviteError);
+            return { error: `招待エラー: ${translateAuthError(inviteError.message)}` };
+        }
+
+        // NOTE: We rely on Database Triggers (on auth.users insert) to create the Profile and Student records.
+        // If your system manually creates them, add that logic here. 
+        // Assuming 'handle_new_user' trigger uses 'raw_user_meta_data' to populate 'profiles' and 'students'.
+
+        return { success: true };
+
+    } catch (err: any) {
+        console.error("Server Action Error:", err);
+        return { error: "サーバーエラーが発生しました" };
+    }
+}
+
+
+function translateAuthError(message: string): string {
+    if (message.includes("email already registered")) return "このメールアドレスは既に登録されています";
+    return message;
 }

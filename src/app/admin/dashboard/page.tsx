@@ -1,8 +1,9 @@
-import { createClient } from "@/utils/supabase/server";
-import { redirect } from "next/navigation";
-import { LogOut } from "lucide-react";
+import AdminInviteUserModal from "@/components/AdminInviteUserModal";
 import AdminSearchFilter from "@/components/AdminSearchFilter";
 import StudentEditModal from "@/components/StudentEditModal";
+import { createClient } from "@/utils/supabase/server";
+import { LogOut } from "lucide-react";
+import { redirect } from "next/navigation";
 
 export default async function AdminDashboard({
     searchParams,
@@ -164,6 +165,7 @@ export default async function AdminDashboard({
                 </div>
                 <div className="w-full flex gap-3 items-center">
                     <AdminSearchFilter courses={courses || []} />
+                    <AdminInviteUserModal courses={courses || []} />
                 </div>
             </header>
 
