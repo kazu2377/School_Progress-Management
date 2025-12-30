@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { login, signup } from "./actions";
+import { login } from "./actions";
 
 export default async function LoginPage({
     searchParams,
@@ -19,69 +19,13 @@ export default async function LoginPage({
                         就職支援管理
                     </h1>
                     <p className="mt-3 text-sm text-slate-600 dark:text-slate-400">
-                        {isSignup ? "新しいアカウントを作成しましょう" : "おかえりなさい！ログインしてください"}
+                        おかえりなさい！ログインしてください
                     </p>
                 </div>
 
-                {/* Tab Switcher */}
-                <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                    <a
-                        href="/login?mode=login"
-                        className={`flex-1 text-center py-2 text-sm font-medium rounded-md transition-all ${!isSignup
-                                ? "bg-white dark:bg-slate-700 text-indigo-600 shadow-sm"
-                                : "text-slate-500 hover:text-slate-700"
-                            }`}
-                    >
-                        ログイン
-                    </a>
-                    <a
-                        href="/login?mode=signup"
-                        className={`flex-1 text-center py-2 text-sm font-medium rounded-md transition-all ${isSignup
-                                ? "bg-white dark:bg-slate-700 text-indigo-600 shadow-sm"
-                                : "text-slate-500 hover:text-slate-700"
-                            }`}
-                    >
-                        新規登録
-                    </a>
-                </div>
 
                 <form className="space-y-5">
                     <div className="space-y-3">
-                        {isSignup && (
-                            <>
-                                <div className="space-y-1">
-                                    <label htmlFor="full_name" className="text-xs font-semibold text-slate-500 uppercase ml-1">
-                                        氏名
-                                    </label>
-                                    <input
-                                        id="full_name"
-                                        name="full_name"
-                                        type="text"
-                                        required
-                                        className="block w-full rounded-lg border-0 py-2 text-slate-900 ring-1 ring-inset ring-slate-300 placeholder:text-slate-400 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm px-3"
-                                        placeholder="山田 太郎"
-                                    />
-                                </div>
-                                <div className="space-y-1">
-                                    <label htmlFor="course_id" className="text-xs font-semibold text-slate-500 uppercase ml-1">
-                                        コース
-                                    </label>
-                                    <select
-                                        id="course_id"
-                                        name="course_id"
-                                        required
-                                        className="block w-full rounded-lg border-0 py-2 text-slate-900 ring-1 ring-inset ring-slate-300 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm px-3 bg-white"
-                                    >
-                                        <option value="">コースを選択してください</option>
-                                        {courses?.map((course) => (
-                                            <option key={course.id} value={course.id}>
-                                                {course.name}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </>
-                        )}
 
                         <div className="space-y-1">
                             <label htmlFor="email" className="text-xs font-semibold text-slate-500 uppercase ml-1">
@@ -125,21 +69,12 @@ export default async function LoginPage({
                     )}
 
                     <div className="pt-2">
-                        {!isSignup ? (
                             <button
                                 formAction={login}
                                 className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
                             >
                                 ログイン
                             </button>
-                        ) : (
-                            <button
-                                formAction={signup}
-                                className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-colors"
-                            >
-                                アカウントを作成する
-                            </button>
-                        )}
                     </div>
                 </form>
 
