@@ -1,6 +1,6 @@
+import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import { headers } from "next/headers";
-import { UAParser } from "ua-parser-js";
 
 export type LogLevel = "INFO" | "WARN" | "ERROR" | "CRITICAL";
 
@@ -86,8 +86,9 @@ export class Logger {
                 changedFields = this.calculateChangedFields(params.old_value, params.new_value);
             }
 
-            // DBへ保存
-            const { error } = await supabase.from("activity_logs").insert({
+            // DBへ保存 (RLS回避のためAdminクライアントを使用)
+            const supabaseAdmin = createAdminClient();
+            const { error } = await supabaseAdmin.from("activity_logs").insert({
                 // 基本情報
                 request_id: this.context.requestId,
                 environment: environment,

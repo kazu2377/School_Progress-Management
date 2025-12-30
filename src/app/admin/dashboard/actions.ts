@@ -137,6 +137,15 @@ export async function inviteUser(formData: FormData) {
         return { error: "必須項目が不足しています" };
     }
 
+    // 2. Domain Restriction Check
+    const allowedDomains = process.env.ALLOWED_EMAIL_DOMAINS?.split(",").map(d => d.trim()).filter(Boolean);
+    if (allowedDomains && allowedDomains.length > 0) {
+        const emailDomain = email.split("@")[1];
+        if (!emailDomain || !allowedDomains.some(domain => emailDomain === domain || emailDomain.endsWith("." + domain))) {
+            return { error: `許可されていないドメインです。(${allowedDomains.join(", ")}) のみ登録可能です。` };
+        }
+    }
+
     try {
         const supabaseAdmin = createAdminClient();
         
@@ -148,9 +157,8 @@ export async function inviteUser(formData: FormData) {
                 full_name: fullName,
                 course_id: courseId,
                 role_id: roleId,
-                // Add any other metadata needed for triggers
             },
-           // redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL}/auth/callback?next=/dashboard` // Adjust as needed
+            redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/auth/callback?next=/auth/update-password`
         });
 
         if (inviteError) {
@@ -171,7 +179,10 @@ export async function inviteUser(formData: FormData) {
 }
 
 
+
 function translateAuthError(message: string): string {
-    if (message.includes("email already registered")) return "このメールアドレスは既に登録されています";
+    if (message.includes("email address has already been registered") || message.includes("email already registered")) {
+        return "このメールアドレスは既に登録されています";
+    }
     return message;
 }
