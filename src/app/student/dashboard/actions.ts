@@ -1,11 +1,12 @@
 "use server";
 
+import { Logger } from "@/utils/logger";
+import { CreateApplicationSchema, UpdateApplicationSchema, UploadAttachmentSchema } from "@/utils/schemas";
+import { validateRequestOrigin } from "@/utils/security";
+import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import { revalidatePath } from "next/cache";
-import { validateRequestOrigin } from "@/utils/security";
-import { CreateApplicationSchema, UpdateApplicationSchema, UploadAttachmentSchema } from "@/utils/schemas";
 import { z } from "zod";
-import { Logger } from "@/utils/logger";
 
 export async function addApplication(formData: FormData) {
     const logger = await Logger.init();
@@ -209,7 +210,9 @@ export async function uploadAttachment(applicationId: string, formData: FormData
     const safeFileName = `${Date.now()}_${Math.random().toString(36).substring(2, 15)}.${ext}`;
     const path = `${applicationId}/${category}/${safeFileName}`;
 
-    const { error: uploadError } = await supabase.storage
+    // Use Admin Client for Storage Upload (Bypasses RLS to allow server-controlled upload)
+    const supabaseAdmin = createAdminClient();
+    const { error: uploadError } = await supabaseAdmin.storage
         .from('application-attachments')
         .upload(path, file);
 
@@ -290,8 +293,9 @@ export async function deleteAttachment(attachmentId: string) {
         return { error: "ファイルが見つかりません" };
     }
 
-    // 1. Remove from Storage
-    const { error: storageError } = await supabase.storage
+    // 1. Remove from Storage (Using Admin Client)
+    const supabaseAdmin = createAdminClient();
+    const { error: storageError } = await supabaseAdmin.storage
         .from('application-attachments')
         .remove([attachment.file_path]);
 
