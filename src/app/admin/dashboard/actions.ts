@@ -152,13 +152,15 @@ export async function inviteUser(formData: FormData) {
         // 1. Invite User by Email
         // This sends an email to the user with a magic link to set their password.
         // The user is created in auth.users immediately with 'invited' status.
+        // NOTE: We do NOT pass redirectTo here. The Email Template controls the URL.
+        // The template should point to /auth/confirm with token_hash, type, and next params.
         const { data: authData, error: inviteError } = await supabaseAdmin.auth.admin.inviteUserByEmail(email, {
             data: {
                 full_name: fullName,
                 course_id: courseId,
                 role_id: roleId,
             },
-            redirectTo: `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/auth/callback?next=/auth/update-password`
+            // redirectTo is omitted to let the email template control the flow
         });
 
         if (inviteError) {
