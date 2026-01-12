@@ -4,17 +4,27 @@ import { createClient } from "@/utils/supabase/server";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 
-const PasswordSchema = z.object({
-  password: z.string().min(6, "パスワードは6文字以上で入力してください"),
-  confirmPassword: z.string().min(6, "確認用パスワードは6文字以上で入力してください"),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "パスワードが一致しません",
-  path: ["confirmPassword"],
-});
+const PasswordSchema = z
+  .object({
+    password: z.string().min(8, "パスワードは8文字以上で入力してください"),
+    confirmPassword: z.string().min(8, "確認用パスワードは8文字以上で入力してください"),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "パスワードが一致しません",
+    path: ["confirmPassword"],
+  });
 
 export async function updatePassword(formData: FormData) {
   const supabase = await createClient();
-  
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { error: "セッションが見つかりません。リンクの有効期限が切れている可能性があります。" };
+  }
+
   const validated = PasswordSchema.safeParse({
     password: formData.get("password"),
     confirmPassword: formData.get("confirmPassword"),
