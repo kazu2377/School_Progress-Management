@@ -1,6 +1,6 @@
 # 1. 依存関係のインストールステージ
-FROM node:20-alpine AS deps
-RUN apk add --no-cache libc6-compat
+FROM node:20-bookworm-slim AS deps
+RUN apt-get update && apt-get install -y --no-install-recommends libc6-dev
 WORKDIR /app
 
 # プロジェクトファイルをコピーして依存関係をインストール
@@ -8,7 +8,7 @@ COPY package.json package-lock.json ./
 RUN npm ci
 
 # 2. ビルドステージ
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -20,7 +20,7 @@ COPY . .
 RUN npm run build
 
 # 3. 実行ステージ
-FROM node:20-alpine AS runner
+FROM node:20-bookworm-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
